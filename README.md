@@ -1,10 +1,15 @@
 # Maestro core
 
+Project management is now on [Basecamp](https://3.basecamp.com/5877831/projects/41721702).
+
+<details>
+<summary>Previous TODOs & notes</summary>
+
 ## TODO
 
-- [ ] Implement real-time EME request
-- [ ] Test EME OSC output
-- [ ] EME request sender channel
+- [x] Implement real-time EME request
+- [x] Test EME OSC output
+- [x] EME request sender channel
 
 ### Major
 
@@ -92,3 +97,5 @@ changes would be consumed, it probably makes sense to use a channel.
 - Gesture information from "hands" to "parameters" (triple buffer)
 - MIDI information from "parameter system" to "midi sender" (mpsc)
 - EME information from "parameter system" to "osc sender" (mpsc)
+
+</details>
