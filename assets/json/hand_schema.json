@@ -1,0 +1,144 @@
+{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "gestureResults": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "gestures": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "score": {
+                  "type": "number"
+                },
+                "index": {
+                  "type": "number"
+                },
+                "categoryName": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "landmarks": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                },
+                "visibility": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "worldLandmarks": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                },
+                "visibility": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "handedness": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "score": {
+                  "type": "number"
+                },
+                "index": {
+                  "type": "string"
+                },
+                "categoryName": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "handednesses": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "score": {
+                  "type": "number"
+                },
+                "index": {
+                  "type": "string"
+                },
+                "categoryName": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

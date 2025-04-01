@@ -1,0 +1,49 @@
+[package]
+name = "maestro"
+version = "0.1.0"
+edition = "2021"
+authors = ["jamiegibney <jamiegibneyuk@gmail.com>"]
+rust-version = "1.74.0"
+description = "Creative Coding Project module submission"
+readme = "./README.md"
+repository = "https://github.com/jamiegibney/creative_coding_project"
+
+[package.metadata.bundle]
+name = "Creative Coding Project"
+identifier = "com.jamiegibney.ccp"
+version = "1.1.1"
+icon = [
+    "./assets/icons/icon_128.png",
+    "./assets/icons/icon_256.png",
+]
+
+[lib]
+doctest = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# anyhow = "1.0.75"           # Error handling
+atomic = "0.6.0"            # Atomic wrapper around types
+atomic_float = "1.1.0"      # Atomic floating-point types
+bytemuck = "1.14.0"         # Type casting etc.
+crossbeam-channel = "0.5.8" # Fast MPMC channels
+dyn-clone = "1.0.14"        # Clone trait for dynamically dispatched objects
+jsonschema = "0.29.0"
+lazy_static = "1.5.0"
+midir = "0.10.1"
+nannou = "0.19.0"           # Creative coding library
+nannou_audio = "0.19.0"     # Audio-related for the above
+nannou_osc = "0.19.0"       #
+noise = "0.9.0"             # Noise algorithms
+rand = "0.9.0"              # Random number generation
+# rayon = "1.8.0"             # Parallel iterators
+realfft = "3.3.0"           # Fast Fourier transform
+serde = "1.0.218"
+serde_json = "1.0.139"
+# serde = "1.0.188"           # (De)serialisation
+triple_buffer = "8.1.0"     # Triple buffer channel
+wide = "0.7.12"             # SIMD types
+
+[profile.release]
+codegen-units = 1

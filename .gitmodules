@@ -1,0 +1,3 @@
+[submodule "eme"]
+	path = eme
+	url = git@github.com:jamiegibney/maestro_eme.git
