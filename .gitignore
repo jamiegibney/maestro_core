@@ -4,5 +4,4 @@ Cargo.lock
 bundles
 flamegraph.svg
 docs
-assets/touchdesigner/
-eme_old/
+assets/maestro_eme.emearr
