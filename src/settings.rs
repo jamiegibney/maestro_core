@@ -75,7 +75,7 @@ pub struct V2 {
 }
 
 /// The size of the application's window in display units.
-pub const WINDOW_SIZE: V2 = V2 { x: 1280.0, y: 720.0 };
+pub const WINDOW_SIZE: V2 = V2 { x: 720.0, y: 405.0 };
 
 // TODO this is constant for now, but should be variable later.
 /// The default DSP buffer size.
@@ -114,7 +114,7 @@ pub const MIDI_SEND_RATE: f64 = 100.0;
 pub const OSC_SEND_RATE: f64 = 5.0;
 pub const PARAM_UPDATE_RATE: f64 = 110.0;
 
-pub const DEFAULT_EME_ARRANGEMENT_NAME: &str = "Unnamed arrangement #1";
+pub const DEFAULT_EME_ARRANGEMENT_NAME: &str = "MAESTRO";
 pub const EME_OSC_REQUEST_CHANNEL: &str = "/127.0.0.1/rt_requests";
 
 pub const MAX_MIDI_BUFFER_SIZE_BYTES: usize = 250;
@@ -122,4 +122,4 @@ pub const MAX_MIDI_BUFFER_SIZE_BYTES: usize = 250;
 pub const DEFAULT_MIDI_CC_UPDATE_THRESHOLD: f32 = 0.01;
 
 pub const MIDI_MESSAGE_QUEUE_SIZE: usize = 1;
-pub const EME_OSC_MESSAGE_QUEUE_SIZE: usize = 1;
+pub const EME_OSC_MESSAGE_QUEUE_SIZE: usize = 16;
