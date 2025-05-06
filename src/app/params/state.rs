@@ -1,20 +1,12 @@
 use super::*;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-pub enum ProgramMode {
-    #[default]
-    A,
-    B,
-    C,
-    D,
-}
-
+#[derive(Clone, Copy, Debug)]
 pub struct ParameterState {
-    pub mode: ProgramMode,
+    pub mode: Mode,
 }
 
 impl Default for ParameterState {
     fn default() -> Self {
-        Self { mode: Default::default() }
+        Self { mode: Mode::default() }
     }
 }

@@ -4,6 +4,7 @@ use super::audio::audio_constructor;
 use super::audio::*;
 use super::view::view;
 use super::*;
+use crate::app::midi::MAX_NOTE_VELOCITY;
 use crate::app::params::*;
 use crate::dsp::{
     BiquadFilter, BiquadParams, Filter, FilterType, ResoBankData,
@@ -98,6 +99,8 @@ pub struct Model {
     gesture_input: triple_buffer::Input<RawHandPairCOM>,
 
     is_sending: bool,
+
+    debug_mode: bool,
 }
 
 impl Model {
@@ -139,7 +142,7 @@ impl Model {
             triple_buffer(&RawHandPairCOM::default());
 
         let (param_handler, param_receivers) =
-            ParameterHandler::new(gesture_output);
+            ParameterHandler::new(gesture_output, &args);
 
         let (eme_sender, osc_receiver) = osc::create_osc_sender_and_receiver(
             &args, param_receivers.eme_receiver,
@@ -155,7 +158,7 @@ impl Model {
 
         // *** *** *** //
 
-        Self {
+        let mut result = Self {
             window,
 
             audio_stream,
@@ -187,7 +190,7 @@ impl Model {
             midi_send_mode: MIDISendMode::MIDIControlChange,
             midi_send_value: 0,
             midi_send_channel: 0,
-            show_state_data: true,
+            show_state_data: args.show_state_data,
 
             midi_timed_thread,
 
@@ -196,7 +199,15 @@ impl Model {
             gesture_input,
 
             is_sending: false,
+
+            debug_mode: args.debug,
+        };
+
+        if args.auto_start_send {
+            result.send_and_update(true);
         }
+
+        result
     }
 
     /// Returns the (approximate) sample index for the current moment in time.
@@ -216,6 +227,8 @@ impl Model {
     }
 
     pub fn send_midi(&mut self) {
+        let mut is_note = false;
+
         let msg = match self.midi_send_mode {
             MIDISendMode::MIDIControlChange => {
                 if self.params.is_14_bit(self.midi_send_channel, self.midi_send_value) { 
@@ -229,19 +242,25 @@ impl Model {
                     )
                 }
             }
-            MIDISendMode::MIDINote => MIDIMessage::note_on(
-                self.midi_send_value, 0, self.midi_send_channel,
-            ),
+            MIDISendMode::MIDINote => { 
+                is_note = true;
+
+                MIDIMessage::note_on(
+                    self.midi_send_value, MAX_NOTE_VELOCITY, self.midi_send_channel,
+                ) 
+            },
         };
 
         if let Err(e) = self.midi_sender.send_direct(&msg) {
             eprintln!("failed to send MIDI message: \"{e}\"");
         }
-        // else {
-        //     let b = msg.as_bytes();
-        //     let bytes = format!("{:b} {:b} {:b}", b[0], b[1], b[2]);
-        //     println!("Sending {msg} (bytes: {bytes})");
-        // }
+
+        if is_note {
+            let msg = msg.as_inverse_note_message();
+            if let Err(e) = self.midi_sender.send_direct(&msg) {
+                eprintln!("failed to send MIDI message: \"{e}\"");
+            }
+        }
     }
 
     pub fn format_state(&self) -> String {
@@ -291,20 +310,24 @@ impl Model {
     }
 
     pub fn send_and_update(&mut self, send_update: bool) {
+        // we don't need to clear the request channel as the queue size is
+        // greater than 1
+        // self.eme_osc_sender.clear_request_channel();
+
         if send_update {
+            self.params.reset_updater();
+            self.params.start_update();
+
             self.hand_manager.start_update();
             self.eme_osc_sender.start_send();
             self.midi_timed_thread.start_send();
-
-            self.params.reset_updater();
-            self.params.start_update();
         }
         else {
+            self.params.stop_update();
+
             self.hand_manager.stop_update();
             self.eme_osc_sender.stop_send();
             self.midi_timed_thread.stop_send();
-
-            self.params.stop_update();
         }
 
         self.is_sending = send_update;

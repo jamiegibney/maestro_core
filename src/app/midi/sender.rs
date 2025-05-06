@@ -250,6 +250,6 @@ impl MIDISenderTimedThread {
     }
 
     pub fn stop_send(&mut self) {
-        self.thread.stop(Some(1.0));
+        self.thread.stop_after_num_callbacks(1, Some(1.0));
     }
 }

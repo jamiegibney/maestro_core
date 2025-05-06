@@ -169,6 +169,25 @@ impl MIDIMessage {
         Self::ProgramChange { program: program_number, ch: channel }
     }
 
+    pub const fn channel(self) -> u8 {
+        match self {
+            Self::NoteOff { ch, .. }
+            | Self::NoteOn { ch, .. }
+            | Self::ControlChange { ch, .. }
+            | Self::ControlChange14Bit { ch, .. }
+            | Self::ProgramChange { ch, .. } => ch,
+        }
+    }
+
+    pub const fn note(self) -> Option<u8> {
+        match self {
+            Self::NoteOff { note, .. } | Self::NoteOn { note, .. } => {
+                Some(note)
+            }
+            _ => None,
+        }
+    }
+
     /// Whether the MIDI message is a 14-bit CC message.
     pub const fn is_14_bit(self) -> bool {
         matches!(self, Self::ControlChange14Bit { .. })
@@ -246,6 +265,18 @@ impl MIDIMessage {
         }
         else {
             panic!("cannot convert non-14-bit midi CC to 3-byte message");
+        }
+    }
+
+    pub const fn as_inverse_note_message(self) -> Self {
+        match self {
+            Self::NoteOff { note, velocity, ch } => {
+                Self::NoteOn { note, velocity, ch }
+            }
+            Self::NoteOn { note, velocity, ch } => {
+                Self::NoteOff { note, velocity, ch }
+            }
+            _ => self,
         }
     }
 

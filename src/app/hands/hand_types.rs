@@ -3,6 +3,8 @@ use std::{mem::transmute, ops::Rem};
 use nannou::color::{Alpha, IntoColor};
 use rand::seq::IndexedRandom;
 
+use crate::util;
+
 use super::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -96,12 +98,32 @@ impl PairOrder {
 }
 
 impl HandGesture {
+    pub const fn is_thumb_up(self) -> bool {
+        matches!(self, Self::ThumbUp)
+    }
+
+    pub const fn is_thumb_down(self) -> bool {
+        matches!(self, Self::ThumbDown)
+    }
+
     pub const fn get_draw_color(self) -> Rgba {
-        match self {
-            Self::Unknown => UNKNOWN_HAND_COLOR,
-            Self::Open => OPEN_HAND_COLOR,
-            Self::Closed => CLOSED_HAND_COLOR,
-            Self::ThumbUp | Self::ThumbDown => THUMB_UP_DOWN_HAND_COLOR,
+        if LIGHT_MODE {
+            match self {
+                Self::Unknown => UNKNOWN_HAND_COLOR,
+                Self::Open => OPEN_HAND_COLOR,
+                Self::Closed => CLOSED_HAND_COLOR,
+                Self::ThumbUp | Self::ThumbDown => THUMB_UP_DOWN_HAND_COLOR,
+            }
+        }
+        else {
+            match self {
+                Self::Unknown => DARK_UNKNOWN_HAND_COLOR,
+                Self::Open => DARK_OPEN_HAND_COLOR,
+                Self::Closed => DARK_CLOSED_HAND_COLOR,
+                Self::ThumbUp | Self::ThumbDown => {
+                    DARK_THUMB_UP_DOWN_HAND_COLOR
+                }
+            }
         }
     }
 
@@ -136,10 +158,10 @@ pub struct RawHand {
 
 impl RawHand {
     pub fn get_openness_from(&self, com: DVec3) -> f64 {
-        let vert_indices = outer_hand_vertex_indices();
+        let vert_indices = openness_indices();
         let norm = (vert_indices.len() as f64).recip();
 
-        let reference_dist = self.points[0].distance(self.points[1]);
+        let reference_dist = self.get_proximity();
 
         let mut acc = 0.0;
 
@@ -151,7 +173,18 @@ impl RawHand {
     }
 
     pub fn get_proximity(&self) -> f64 {
-        self.points[0].distance(self.points[1])
+        // we get the max of these three distances, because they are
+        // "relatively" constant compared to other features of the hand as it
+        // moves, and having three distances to use provides a little more
+        // stability.
+
+        // TODO(jamie): perhaps these could be weighted towards the greater
+        // values?
+        let dist_01 = self.points[0].distance(self.points[1]);
+        let dist_02 = self.points[1].distance(self.points[2]);
+        let dist_03 = self.points[2].distance(self.points[3]);
+
+        f64::max(f64::max(dist_01, dist_02), dist_03)
     }
 
     pub fn get_pinch_for(&self, finger: Finger) -> f64 {
@@ -204,17 +237,15 @@ pub struct RawHandPairCOM {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct SignificantHandValues<'a> {
+pub struct CCUpdateData<'a> {
     pub hands: &'a RawHandPairCOM,
     pub velocities: &'a (f32, f32),
+    pub mode_sweep: Option<f64>,
 }
 
 impl RawHandPairCOM {
     pub fn get_openness(&self) -> (Option<f64>, Option<f64>) {
         let (mut f, mut s) = (None, None);
-
-        let vert_indices = outer_hand_vertex_indices();
-        let norm = (vert_indices.len() as f64).recip();
 
         if let Some(hand) = &self.pair.first
             && let Some(com) = self.com.first
@@ -315,7 +346,7 @@ impl Drawable for RawHandPair {
     fn draw(&self, draw: &Draw, frame: &Frame) {
         let wh = frame.rect().wh().as_f64();
 
-        let width = 6.0;
+        let width = 8.0;
         let dims = Vec2::splat(width);
 
         if let Some(first) = &self.first {
@@ -323,7 +354,12 @@ impl Drawable for RawHandPair {
 
             for (i, p) in first.points.iter().enumerate() {
                 let (point, depth) = to_xy_and_depth(*p, wh);
-                col.alpha = depth as f32;
+                if LIGHT_MODE {
+                    col.alpha = util::xfer::strong_over(depth) as f32;
+                }
+                else {
+                    col.alpha = depth as f32;
+                }
 
                 let scale = if is_outer_vertex(i) { 1.5 } else { 1.0 };
 
@@ -539,7 +575,8 @@ impl Drawable for COMPair {
         let dims = Vec2::splat(width);
 
         let (first_txt, second_txt) = self.get_text();
-        let col = DEFAULT_COM_COLOR;
+        let col =
+            if LIGHT_MODE { DEFAULT_COM_COLOR } else { DARK_DEFAULT_COM_COLOR };
 
         if let Some(first) = &self.first {
             let (point, _) = to_xy_and_depth(*first, wh);

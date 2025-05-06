@@ -82,7 +82,7 @@ impl MIDINoteParameter {
 
 // *** *** *** //
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(super) struct MIDINoteIndex {
     pub(super) channel: usize,
     pub(super) note: usize,
@@ -94,7 +94,7 @@ impl MIDINoteIndex {
         let note = note as usize;
 
         assert!(
-            channel < NUM_CHANNELS,
+            channel < NUM_MIDI_CHANNELS,
             "exceeded number of channels (got {channel})"
         );
         assert!(note < NUM_MIDI_NOTES, "exceeded number of notes (got {note})");
@@ -125,7 +125,7 @@ impl MIDICCIndex {
         let cc = cc as usize;
 
         assert!(
-            channel < NUM_CHANNELS,
+            channel < NUM_MIDI_CHANNELS,
             "exceeded number of channels (got {channel})"
         );
         assert!(cc < NUM_MIDI_CCS, "exceeded number of ccs (got {cc})");

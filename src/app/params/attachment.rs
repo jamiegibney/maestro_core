@@ -1,9 +1,9 @@
 use super::*;
-use hands::hand_types::SignificantHandValues;
+use hands::hand_types::CCUpdateData;
 use midi_types::*;
 use state::ParameterState;
 
-pub type MIDICCFn = fn(&SignificantHandValues, &mut f32);
+pub type MIDICCFn = fn(&CCUpdateData, &mut f32);
 pub type MIDICCPredicate = fn(&ParameterState) -> bool;
 
 #[derive(Clone, Debug)]
@@ -82,7 +82,7 @@ impl MIDICCAttachment {
 
     pub fn callback(
         &mut self,
-        significant_values: &SignificantHandValues,
+        significant_values: &CCUpdateData,
         cc_value: &mut f32,
         delta_time: f32,
     ) {

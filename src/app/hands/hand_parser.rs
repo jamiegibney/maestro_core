@@ -122,7 +122,9 @@ impl HandParser {
 
         let gestures: Vec<&str> = self.curr_strings[3].split(',').collect();
 
-        self.has_second = x_count / NUM_HAND_VERTICES > 1;
+        // NOTE(jamie): for now we don't consider the second hand, so it remains
+        // false.
+        // self.has_second = x_count / NUM_HAND_VERTICES > 1;
 
         copy_to_buf(&mut self.first_hand_buf, 0);
         if !gestures.is_empty() {

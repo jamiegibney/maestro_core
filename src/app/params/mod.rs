@@ -3,6 +3,7 @@
 mod attachment;
 mod midi_cc_attachments;
 mod midi_types;
+mod mode;
 mod state;
 pub mod types;
 mod updater;
@@ -19,10 +20,11 @@ use message::MIDIMessage;
 use midi_cc_attachments::build_midi_cc_attachments;
 use midi_types::MIDICCIndex;
 use timer::TimerThread;
+use mode::Mode;
 pub use types::*;
 use updater::ParameterUpdater;
 
-use super::*;
+use super::{args::Arguments, *};
 use midi::*;
 use osc::*;
 
@@ -47,6 +49,7 @@ pub struct ParameterReceivers {
 impl ParameterHandler {
     pub fn new(
         gesture_data: triple_buffer::Output<RawHandPairCOM>,
+        args: &Arguments,
     ) -> (Self, ParameterReceivers) {
         let (midi_tx, midi_rx) = bounded_channel(MIDI_MESSAGE_QUEUE_SIZE);
         let (eme_tx, eme_rx) = bounded_channel(EME_OSC_MESSAGE_QUEUE_SIZE);
@@ -57,6 +60,7 @@ impl ParameterHandler {
                 eme_sender: Arc::new(Mutex::new(eme_tx)),
             },
             gesture_data,
+            args,
         )));
 
         let param_updater = Arc::clone(&updater);
@@ -78,26 +82,37 @@ impl ParameterHandler {
         (s, rx_channels)
     }
 
-    pub fn reset_updater(&self) {
+    pub fn set_eme_arrangement(&mut self, arrangement_name: &str) {
         if let Ok(mut guard) = self.updater.lock() {
-            guard.reset_delta_time();
-
-            guard.mark_active_midi_ccs_for_update();
+            guard.set_eme_arrangement(arrangement_name);
         }
     }
 
-    pub fn reset_midi_params(&self) {
+    pub fn reset_updater(&self) {
         if let Ok(mut guard) = self.updater.lock() {
+            guard.reset_delta_time();
             guard.mark_active_midi_ccs_for_update();
         }
     }
 
     pub fn start_update(&mut self) {
         self.update_thread.start_hz(PARAM_UPDATE_RATE);
+
+        if let Ok(mut guard) = self.updater.lock() {
+            // NOTE(jamie): we need to set the arrangement *before* we start
+            // playback, otherwise the EME will return an error.
+            guard.set_eme_arrangement(DEFAULT_EME_ARRANGEMENT_NAME);
+            guard.set_eme_playback(true);
+            guard.start_mode_change();
+        }
     }
 
     pub fn stop_update(&mut self) {
-        self.update_thread.stop(Some(1.0));
+        if let Ok(mut guard) = self.updater.lock() {
+            guard.set_eme_playback(false);
+        }
+
+        self.update_thread.stop();
     }
 
     pub fn get_name_for_cc(&self, channel: u8, cc: u8) -> Option<&str> {

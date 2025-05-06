@@ -4,6 +4,9 @@ use super::*;
 pub mod message;
 pub mod sender;
 
+pub const MIN_NOTE_VELOCITY: u8 = 0;
+pub const MAX_NOTE_VELOCITY: u8 = 127;
+
 pub const MIDI_CHANNEL_1: u8 = 0;
 pub const MIDI_CHANNEL_2: u8 = 1;
 pub const MIDI_CHANNEL_3: u8 = 2;

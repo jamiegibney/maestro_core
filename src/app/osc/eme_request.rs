@@ -105,6 +105,12 @@ impl EMERequest {
     pub fn is_stop(&self) -> bool {
         self.playback.is_some_and(|p| p == EMEPlayback::Stop)
     }
+
+    pub const fn is_empty(&self) -> bool {
+        self.arrangement.is_none()
+            && self.playback.is_none()
+            && self.position.is_none()
+    }
 }
 
 impl Default for EMERequest {

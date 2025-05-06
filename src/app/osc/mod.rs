@@ -7,6 +7,7 @@ use super::*;
 
 use args::Arguments;
 use eme_request::{EMERequest, ToJson};
+use nannou::color::ConvertInto;
 use nannou_osc::{self as osc, Connected};
 use timer::TimerThread;
 
@@ -48,6 +49,7 @@ impl OSCReceiver {
 pub struct EMERequestOSCSender {
     sender: Arc<Mutex<osc::Sender<Connected>>>,
     osc_sender_timer: TimerThread,
+    request_rx: Arc<Mutex<CCReceiver<EMERequest>>>,
 }
 
 impl EMERequestOSCSender {
@@ -62,12 +64,13 @@ impl EMERequestOSCSender {
         // timer thread state
         let osc_sender = Arc::clone(&sender);
         let request_rx = Arc::new(Mutex::new(eme_request_channel));
+        let request_receiver = Arc::clone(&request_rx);
 
         let osc_sender_timer = TimerThread::new(move || {
             let osc_addr = EME_OSC_REQUEST_CHANNEL.to_string();
 
             if let Ok(osc) = osc_sender.lock()
-                && let Ok(receiver) = request_rx.lock()
+                && let Ok(receiver) = request_receiver.lock()
             {
                 while let Ok(eme_request) = receiver.try_recv() {
                     let request_str = eme_request.as_json().to_string();
@@ -82,7 +85,6 @@ impl EMERequestOSCSender {
                         && attempts < MAX_OSC_SEND_ATTEMPTS
                     {
                         attempts += 1;
-                        eprintln!("failed to send OSC message (attempt #{attempts}): {e}");
 
                         send_result =
                             osc.send((osc_addr.clone(), args.clone()));
@@ -91,7 +93,7 @@ impl EMERequestOSCSender {
             }
         });
 
-        Ok(Self { sender, osc_sender_timer })
+        Ok(Self { sender, osc_sender_timer, request_rx })
     }
 
     pub fn start_send(&mut self) {
@@ -99,7 +101,15 @@ impl EMERequestOSCSender {
     }
 
     pub fn stop_send(&mut self) {
-        self.osc_sender_timer.stop(Some(1.0));
+        self.osc_sender_timer.stop_after_num_callbacks(1, Some(1.0));
+    }
+
+    pub fn clear_request_channel(&self) {
+        if let Ok(mut guard) = self.request_rx.lock() {
+            while let Ok(request) = guard.try_recv() {
+                //
+            }
+        }
     }
 }
 

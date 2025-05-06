@@ -12,22 +12,41 @@ pub mod hand_types;
 
 pub const NUM_HAND_VERTICES: usize = 21;
 pub const HAND_DETECTION_TIMEOUT: f64 = 1.0;
-pub const HAND_DAMPING_TIME: f64 = 0.020;
+pub const HAND_DAMPING_TIME: f64 = 0.060;
 pub const MAX_HAND_SPEED: f64 = 250.0;
 
-pub const MAX_HAND_VELOCITY: f64 = 100.0;
+pub const MAX_HAND_VELOCITY: f64 = 1.15;
+pub const VELOCITY_MAPPING_TENSION: f64 = 7.0;
+pub const VELOCITY_THRESHOLD: f64 = 0.05;
 
 pub const WRIST_VERTEX_INDEX: usize = 0;
 pub const THUMB_TIP_VERTEX_INDEX: usize = 4;
 pub const INDEX_TIP_VERTEX_INDEX: usize = 8;
+pub const INDEX_FIRST_JOINT_INDEX: usize = 7;
 pub const MIDDLE_TIP_VERTEX_INDEX: usize = 12;
+pub const MIDDLE_FIRST_JOINT_INDEX: usize = 11;
 pub const RING_TIP_VERTEX_INDEX: usize = 16;
+pub const RING_FIRST_JOINT_INDEX: usize = 15;
 pub const PINKY_TIP_VERTEX_INDEX: usize = 20;
+pub const PINKY_FIRST_JOINT_INDEX: usize = 19;
+
+pub const LIGHT_MODE: bool = false;
 
 pub const fn outer_hand_vertex_indices() -> [usize; 6] {
     [
         WRIST_VERTEX_INDEX, THUMB_TIP_VERTEX_INDEX, INDEX_TIP_VERTEX_INDEX,
         MIDDLE_TIP_VERTEX_INDEX, RING_TIP_VERTEX_INDEX, PINKY_TIP_VERTEX_INDEX,
+    ]
+}
+
+pub const fn openness_indices() -> [usize; 2] {
+    [MIDDLE_FIRST_JOINT_INDEX, RING_FIRST_JOINT_INDEX]
+}
+
+pub const fn finger_joint_indices() -> [usize; 4] {
+    [
+        INDEX_FIRST_JOINT_INDEX, MIDDLE_FIRST_JOINT_INDEX,
+        RING_FIRST_JOINT_INDEX, PINKY_FIRST_JOINT_INDEX,
     ]
 }
 
@@ -47,12 +66,17 @@ const fn color(r: f32, g: f32, b: f32, a: f32) -> Rgba {
     }
 }
 
-pub const UNKNOWN_HAND_COLOR: Rgba = color(1.0, 1.0, 1.0, 0.5);
-pub const OPEN_HAND_COLOR: Rgba = color(0.0, 1.0, 0.0, 1.0);
-pub const CLOSED_HAND_COLOR: Rgba = color(1.0, 0.0, 0.0, 1.0);
-pub const THUMB_UP_DOWN_HAND_COLOR: Rgba = color(1.0, 1.0, 0.0, 1.0);
+pub const UNKNOWN_HAND_COLOR: Rgba = color(0.0, 0.0, 0.0, 0.8);
+pub const OPEN_HAND_COLOR: Rgba = color(0.0, 0.2, 0.0, 1.0);
+pub const CLOSED_HAND_COLOR: Rgba = color(0.5, 0.0, 0.0, 1.0);
+pub const THUMB_UP_DOWN_HAND_COLOR: Rgba = color(0.5, 0.5, 0.0, 1.0);
+pub const DEFAULT_COM_COLOR: Rgba = color(0.1, 0.3, 0.7, 0.15);
 
-pub const DEFAULT_COM_COLOR: Rgba = color(0.2, 0.5, 1.0, 0.15);
+pub const DARK_UNKNOWN_HAND_COLOR: Rgba = color(1.0, 1.0, 1.0, 0.5);
+pub const DARK_OPEN_HAND_COLOR: Rgba = color(0.0, 1.0, 0.0, 1.0);
+pub const DARK_CLOSED_HAND_COLOR: Rgba = color(1.0, 0.0, 0.0, 1.0);
+pub const DARK_THUMB_UP_DOWN_HAND_COLOR: Rgba = color(1.0, 1.0, 0.0, 1.0);
+pub const DARK_DEFAULT_COM_COLOR: Rgba = color(0.2, 0.5, 0.7, 0.15);
 
 #[derive(Debug, Default)]
 struct InvalidHandTimeout {
@@ -238,7 +262,7 @@ impl Updatable for HandManager {
         if !self.can_update {
             return;
         }
-        
+
         let latest_packet = self.osc_receiver.try_recv();
 
         if latest_packet.is_none() {
