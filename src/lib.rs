@@ -3,6 +3,7 @@
     clippy::module_name_repetitions,
     clippy::wildcard_imports,
     clippy::return_self_not_must_use,
+    clippy::redundant_closure_for_method_calls,
     unused
 )]
 
