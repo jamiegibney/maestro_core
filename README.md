@@ -13,3 +13,14 @@
 >
 > As mentioned, this is a prototype. The implementation is messy, inefficient,
 > and far from complete.
+
+> [!NOTE]
+> Please note that there are many modules/source files which are unused,
+> because this project was initially a fork of [this
+> repository](https://github.com/jamiegibney/creative_coding_project). Most of
+> the implementation is in the following modules:
+> - `src/app/hands/`
+> - `src/app/midi/`
+> - `src/app/osc/`
+> - `src/app/params/`
+
